@@ -34,10 +34,15 @@ class Model(torch.nn.Module):
         return hidden
 
     def init_hidden(self):
-        return torch.zeros(self.batch_size, self.hidden_size)
+        return torch.zeros(self.batch_size, self.hidden_size, device=device)
 
 
-net = Model(input_size, hidden_size, batch_size)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f'Using device: {device}')
+
+net = Model(input_size, hidden_size, batch_size).to(device)
+inputs = inputs.to(device)
+labels = labels.to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=0.1)
@@ -92,12 +97,14 @@ class Model2(torch.nn.Module):
     def forward(self, input):
         hidden = torch.zeros(self.num_layers,
                              self.batch_size,
-                             self.hidden_size)
+                             self.hidden_size, device=device)
         out, _ = self.rnn(input, hidden)
         return out.view(-1, self.hidden_size)
 
 
-net2 = Model2(input_size, hidden_size, batch_size, num_layers)
+net2 = Model2(input_size, hidden_size, batch_size, num_layers).to(device)
+inputs = inputs.to(device)
+labels = labels.to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net2.parameters(), lr=0.05)
@@ -128,8 +135,8 @@ idx2char = ['e', 'h', 'l', 'o']
 x_data = [[1, 0, 2, 2, 3]]          # (batch, seq_len)
 y_data = [3, 1, 2, 3, 2]            # (batch * seq_len)
 
-inputs = torch.LongTensor(x_data)
-labels = torch.LongTensor(y_data)
+inputs = torch.LongTensor(x_data).to(device)
+labels = torch.LongTensor(y_data).to(device)
 
 
 class Model3(torch.nn.Module):
@@ -143,14 +150,14 @@ class Model3(torch.nn.Module):
         self.fc = torch.nn.Linear(hidden_size, num_class)
 
     def forward(self, x):
-        hidden = torch.zeros(num_layers, x.size(0), hidden_size)
+        hidden = torch.zeros(num_layers, x.size(0), hidden_size, device=device)
         x = self.emb(x)  # (batch, seqLen, embeddingSize)
         x, _ = self.rnn(x, hidden)
         x = self.fc(x)
         return x.view(-1, num_class)
 
 
-net3 = Model3()
+net3 = Model3().to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net3.parameters(), lr=0.05)

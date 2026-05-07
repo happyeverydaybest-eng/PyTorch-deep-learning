@@ -12,7 +12,7 @@ BATCH_SIZE = 256
 N_LAYER = 2
 N_EPOCHS = 100
 N_CHARS = 128
-USE_GPU = False
+USE_GPU = True
 
 
 def time_since(since):
@@ -168,6 +168,9 @@ if __name__ == '__main__':
     if USE_GPU:
         device = torch.device("cuda:0")
         classifier.to(device)
+    else:
+        device = torch.device("cpu")
+    print(f'Using device: {device}')
 
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(classifier.parameters(), lr=0.001)
